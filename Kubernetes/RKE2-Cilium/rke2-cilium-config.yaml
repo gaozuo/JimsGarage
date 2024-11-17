@@ -6,8 +6,14 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
-    kubeProxyReplacement: strict
+    kubeProxyReplacement: true
     k8sServiceHost: <KUBE_API_SERVER_IP>
     k8sServicePort: 6443
     cni:
       chainingMode: "none"
+    hubble:
+      enabled: true
+      relay:
+        enabled: true
+      ui:
+        enabled: true

@@ -24,12 +24,18 @@ echo -e " \033[32;5m                                                           \
 KVVERSION="v0.6.3"
 
 # Set the IP addresses of the admin, masters, and workers nodes
-admin=192.168.3.5
-master1=192.168.3.21
-master2=192.168.3.22
-master3=192.168.3.23
-worker1=192.168.3.24
-worker2=192.168.3.25
+admin=192.168.2.31
+master1=192.168.2.32
+master2=192.168.2.33
+master3=192.168.2.34
+
+worker1=192.168.2.35
+worker2=192.168.2.36
+worker3=192.168.2.37
+worker4=192.168.2.38
+worker5=192.168.2.39
+worker6=192.168.2.40
+
 
 # User of remote machines
 user=ubuntu
@@ -38,7 +44,7 @@ user=ubuntu
 interface=eth0
 
 # Set the virtual IP address (VIP)
-vip=192.168.3.50
+vip=192.168.2.50
 
 # Array of all master nodes
 allmasters=($master1 $master2 $master3)
@@ -47,16 +53,16 @@ allmasters=($master1 $master2 $master3)
 masters=($master2 $master3)
 
 # Array of worker nodes
-workers=($worker1 $worker2)
+workers=($worker1 $worker2 $worker3 $worker4 $worker5 $worker6)
 
 # Array of all
-all=($master1 $master2 $master3 $worker1 $worker2)
+all=($master1 $master2 $master3 $worker1 $worker2 $worker3 $worker4 $worker5 $worker6)
 
 # Array of all minus master1
-allnomaster1=($master2 $master3 $worker1 $worker2)
+allnomaster1=($master2 $master3 $worker1 $worker2 $worker3 $worker4 $worker5 $worker6)
 
 #Loadbalancer IP range - this is set to /27 in rke2-cilium-config.yaml
-lbrange=192.168.3.64
+lbrange=192.168.2.60
 
 #ssh certificate name variable
 certName=id_rsa
@@ -135,9 +141,10 @@ curl -LJO https://raw.githubusercontent.com/JamesTurland/JimsGarage/main/Kuberne
 cat rke2-cilium-config.yaml | sed 's/<KUBE_API_SERVER_IP>/'$master1'/g' > rke2-cilium-config-update.yaml
 cp rke2-cilium-config-update.yaml /var/lib/rancher/rke2/server/manifests/rke2-cilium-config.yaml
 
-curl -sfL https://get.rke2.io | sh -
+curl -sfL curl -sfL https://rancher-mirror.rancher.cn/rke2/install.sh | INSTALL_RKE2_MIRROR=cn sh -
 systemctl enable rke2-server.service
 systemctl start rke2-server.service
+sleep 100
 echo "StrictHostKeyChecking no" > ~/.ssh/config
 ssh-copy-id -i /home/$user/.ssh/$certName $user@$admin
 scp -i /home/$user/.ssh/$certName /var/lib/rancher/rke2/server/token $user@$admin:~/token
@@ -147,7 +154,8 @@ EOF
 echo -e " \033[32;5mMaster1 Completed\033[0m"
 
 # Step 4: Set variable to the token we just extracted, set kube config location
-token=`cat token`
+token=`ssh $user@$master1 "sudo cat /var/lib/rancher/rke2/server/token"`
+echo "token: $token"
 sudo cat ~/.kube/rke2.yaml | sed 's/127.0.0.1/'$master1'/g' > $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 export KUBECONFIG=${HOME}/.kube/config
@@ -177,9 +185,10 @@ for newnode in "${masters[@]}"; do
   cat rke2-cilium-config.yaml | sed 's/<KUBE_API_SERVER_IP>/'$master1'/g' | sed 's/<lb-network>/'$lbrange'/g' > rke2-cilium-config-update.yaml
   cp rke2-cilium-config-update.yaml /var/lib/rancher/rke2/server/manifests/rke2-cilium-config.yaml
 
-  curl -sfL https://get.rke2.io | sh -
+  curl -sfL curl -sfL https://rancher-mirror.rancher.cn/rke2/install.sh | INSTALL_RKE2_MIRROR=cn sh -
   systemctl enable rke2-server.service
   systemctl start rke2-server.service
+  sleep 60
   exit
 EOF
   echo -e " \033[32;5mMaster node joined successfully!\033[0m"
@@ -197,7 +206,7 @@ for newnode in "${workers[@]}"; do
   echo "node-label:" >> /etc/rancher/rke2/config.yaml
   echo "  - worker=true" >> /etc/rancher/rke2/config.yaml
   echo "  - longhorn=true" >> /etc/rancher/rke2/config.yaml
-  curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE="agent" sh -
+  curl -sfL curl -sfL https://rancher-mirror.rancher.cn/rke2/install.sh | INSTALL_RKE2_MIRROR=cn INSTALL_RKE2_TYPE="agent" sh -
   systemctl enable rke2-agent.service
   systemctl start rke2-agent.service
   exit
