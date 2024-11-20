@@ -17,3 +17,5 @@ spec:
         enabled: true
       ui:
         enabled: true
+    bgpControlPlane:
+      enabled: true

@@ -137,7 +137,7 @@ mkdir -p /etc/rancher/rke2
 mv config.yaml /etc/rancher/rke2/config.yaml
 echo 'export KUBECONFIG=/etc/rancher/rke2/rke2.yaml' >> ~/.bashrc ; echo 'export PATH=${PATH}:/var/lib/rancher/rke2/bin' >> ~/.bashrc ; echo 'alias k=kubectl' >> ~/.bashrc ; source ~/.bashrc ;
 
-curl -LJO https://raw.githubusercontent.com/JamesTurland/JimsGarage/main/Kubernetes/RKE2-Cilium/rke2-cilium-config.yaml
+curl -LJO https://raw.githubusercontent.com/gaozuo/JimsGarage/main/Kubernetes/RKE2-Cilium/rke2-cilium-config.yaml
 cat rke2-cilium-config.yaml | sed 's/<KUBE_API_SERVER_IP>/'$master1'/g' > rke2-cilium-config-update.yaml
 cp rke2-cilium-config-update.yaml /var/lib/rancher/rke2/server/manifests/rke2-cilium-config.yaml
 
@@ -181,7 +181,7 @@ for newnode in "${masters[@]}"; do
   echo "  - rke2-ingress-nginx" >> /etc/rancher/rke2/config.yaml
   echo "disable-kube-proxy: \"true\"" >> /etc/rancher/rke2/config.yaml
 
-  curl -LJO https://raw.githubusercontent.com/JamesTurland/JimsGarage/main/Kubernetes/RKE2-Cilium/rke2-cilium-config.yaml
+  curl -LJO https://raw.githubusercontent.com/gaozuo/JimsGarage/main/Kubernetes/RKE2-Cilium/rke2-cilium-config.yaml
   cat rke2-cilium-config.yaml | sed 's/<KUBE_API_SERVER_IP>/'$master1'/g' | sed 's/<lb-network>/'$lbrange'/g' > rke2-cilium-config-update.yaml
   cp rke2-cilium-config-update.yaml /var/lib/rancher/rke2/server/manifests/rke2-cilium-config.yaml
 
